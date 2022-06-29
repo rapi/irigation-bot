@@ -49,12 +49,13 @@ export class ReminderService {
       );
     });
     this.bot.onText(/\/start/, (msg, match) => {
-      this.bot.sendMessage(
-        meta.chatId,
-        `@${msg.from.username} и еще ${
-          Object.keys(meta.users).length
-        } участников пом поливать туи`,
-      );
+      if (!meta.users[msg.from.username])
+        this.bot.sendMessage(
+          meta.chatId,
+          `@${msg.from.username} и еще ${
+            Object.keys(meta.users).length
+          } участников пом поливать туи`,
+        );
       this.addUser(msg);
     });
   }
@@ -97,25 +98,24 @@ export class ReminderService {
     this.reminder();
   }
   agree(user) {
+    if (!meta.users[user.from.username]) {
+      this.addUser(user);
+    }
     if (
       differenceInCalendarDays(new Date(), new Date(meta.wateringToday.date)) >
       1
     ) {
       this.bot.sendMessage(user.chat.id, `Спасибо большое, за заботу`);
-      if (!meta.users[user.from.username])
-        this.bot.sendMessage(
-          meta.chatId,
-          `@${user.from.username} \n Согласился полить туи, как и ${meta.users[
-            user.from.username
-          ].counter++} раз до этого`,
-        );
+      this.bot.sendMessage(
+        meta.chatId,
+        `@${user.from.username} \n Согласился полить туи, как и ${meta.users[
+          user.from.username
+        ].counter++} раз до этого`,
+      );
       meta.wateringToday = {
         date: Date.now(),
         user: user.from.username,
       };
-    }
-    if (!meta.users[user.from.username]) {
-      this.addUser(user);
     }
   }
   addUser(user) {
