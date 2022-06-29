@@ -54,7 +54,7 @@ export class ReminderService {
           meta.chatId,
           `@${msg.from.username} и еще ${
             Object.keys(meta.users).length
-          } участников пом поливать туи`,
+          } участников помогут поливать туи`,
         );
       this.addUser(msg);
     });
