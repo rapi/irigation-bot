@@ -16,13 +16,23 @@ const getRandomUser = () =>
   Object.keys(meta.users)[
     Math.floor(Math.random() * Object.keys(meta.users).length)
   ];
+
+const getUsername = (user) =>
+  user.from.username
+    ? '@' + user.from.username
+    : user.from.first_name + ' ' + user.from.last_name;
 @Injectable()
 export class ReminderService {
   token = process.env.NODE_TELEGRAM;
   bot;
   constructor() {
     this.bot = new TelegramBot(this.token, { polling: true });
-
+    this.bot.setMyCommands([
+      { command: '/start', description: 'Помочь в поливе' },
+      { command: '/stop', description: 'Отказаться от помощи' },
+      { command: '/agree', description: 'Я сегодня буду поливать' },
+      { command: '/disagree', description: 'Я сегодня не смогу' },
+    ]);
     try {
       meta = JSON.parse(fs.readFileSync('./meta.json', 'utf-8'));
     } catch (e) {}
@@ -38,24 +48,19 @@ export class ReminderService {
     this.bot.onText(/\/set_group/, (msg, match) => {
       meta.chatId = msg.chat.id;
     });
+
     this.bot.onText(/\/stop/, (msg, match) => {
-      const chatId = meta.users[msg.from.username].chatId;
-      delete meta.users[msg.from.username];
+      const chatId = meta.users[msg.chat.id].user.chat.id;
+      delete meta.users[msg.chat.id];
       this.bot.sendMessage(
         chatId,
-        `@${msg.from.username} отказался от помощи в поливе :( осталось ${
+        `${getUsername(msg)} отказался от помощи в поливе :( осталось ${
           Object.keys(meta.users).length
         } участников`,
       );
     });
+
     this.bot.onText(/\/start/, (msg, match) => {
-      if (!meta.users[msg.from.username])
-        this.bot.sendMessage(
-          meta.chatId,
-          `@${msg.from.username} и еще ${
-            Object.keys(meta.users).length
-          } участников помогут поливать туи`,
-        );
       this.addUser(msg);
     });
   }
@@ -64,7 +69,7 @@ export class ReminderService {
   saveData() {
     fs.writeFileSync('./meta.json', JSON.stringify(meta));
   }
-  @Cron('* 1 * * * *')
+  @Cron('*/20 * * * * *')
   reminderWatering() {
     this.reminder();
   }
@@ -79,8 +84,10 @@ export class ReminderService {
       const user = getRandomUser();
       if (user)
         this.bot.sendMessage(
-          meta.users[user].chatId,
-          `@${user} \n как насчет того, чтобы полить сегодня наши доблестные туи? \n просто нажмите на /agree если согластны \n или на /disagree если не сможете`,
+          meta.users[user].user.chat.id,
+          `${getUsername(
+            meta.users[user].user,
+          )} \n как насчет того, чтобы полить сегодня наши доблестные туи? \n просто нажмите на /agree если согластны \n или на /disagree если не сможете`,
         );
     }
   }
@@ -90,15 +97,12 @@ export class ReminderService {
         user: null,
         date: 0,
       };
-      this.bot.sendMessage(
-        meta.users[user.from.username].chatId,
-        `Мы спросим кого-нибудь еще`,
-      );
+      this.bot.sendMessage(user.chat.id, `Мы попросим кого-нибудь еще`);
     }
     this.reminder();
   }
   agree(user) {
-    if (!meta.users[user.from.username]) {
+    if (!meta.users[user.chat.id]) {
       this.addUser(user);
     }
     if (
@@ -108,25 +112,37 @@ export class ReminderService {
       this.bot.sendMessage(user.chat.id, `Спасибо большое, за заботу`);
       this.bot.sendMessage(
         meta.chatId,
-        `@${user.from.username} \n Согласился полить туи, как и ${meta.users[
-          user.from.username
+        `${getUsername(user)} \n Согласился полить туи, как и ${meta.users[
+          user.chat.id
         ].counter++} раз до этого`,
       );
       meta.wateringToday = {
         date: Date.now(),
         user: user.from.username,
       };
+    } else {
+      this.bot.sendMessage(
+        user.chat.id,
+        `Спасибо но уже другой пользователь согласился полить их.`,
+      );
     }
   }
   addUser(user) {
-    meta.users[user.from.username] = {
+    meta.users[user.chat.id] = {
       counter: 0,
       last: null,
-      chatId: user.chat.id,
+      user: user,
     };
     this.bot.sendMessage(
-      meta.users[user.from.username].chatId,
-      `Мы записали вас, спасибо за помощь`,
+      user.chat.id,
+      `Мы записали вас в очередь на полив туй, программа время от времени будет спрашивать вас об этой возможности, спасибо за помощь :D`,
     );
+    if (!meta.users[user.chat.id] && meta.chatId)
+      this.bot.sendMessage(
+        meta.chatId,
+        `${getUsername(user)} поможет поливать. Всего участников: ${
+          Object.keys(meta.users).length
+        }`,
+      );
   }
 }
