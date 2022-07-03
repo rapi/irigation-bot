@@ -128,21 +128,22 @@ export class ReminderService {
     }
   }
   addUser(user) {
-    meta.users[user.chat.id] = {
-      counter: 0,
-      last: null,
-      user: user,
-    };
     this.bot.sendMessage(
       user.chat.id,
       `Мы записали вас в очередь на полив туй, программа время от времени будет спрашивать вас об этой возможности, спасибо за помощь :D`,
     );
-    if (!meta.users[user.chat.id] && meta.chatId)
+    if (!meta.users[user.chat.id] && meta.chatId) {
       this.bot.sendMessage(
         meta.chatId,
         `${getUsername(user)} поможет поливать. Всего участников: ${
           Object.keys(meta.users).length
         }`,
       );
+    }
+    meta.users[user.chat.id] = {
+      counter: 0,
+      last: null,
+      user: user,
+    };
   }
 }
