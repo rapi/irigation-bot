@@ -69,7 +69,7 @@ export class ReminderService {
   saveData() {
     fs.writeFileSync('./meta.json', JSON.stringify(meta));
   }
-  @Cron('*/20 * * * * *')
+  @Cron('0 0 * * * *')
   reminderWatering() {
     this.reminder();
   }
