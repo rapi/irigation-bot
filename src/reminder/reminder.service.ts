@@ -27,12 +27,12 @@ export class ReminderService {
   bot;
   constructor() {
     this.bot = new TelegramBot(this.token, { polling: true });
-    this.bot.setMyCommands([
-      { command: '/start', description: 'Помочь в поливе' },
-      { command: '/stop', description: 'Отказаться от помощи' },
-      { command: '/agree', description: 'Я сегодня буду поливать' },
-      { command: '/disagree', description: 'Я сегодня не смогу' },
-    ]);
+    // this.bot.setMyCommands([
+    //   { command: '/start', description: 'Помочь в поливе' },
+    //   { command: '/stop', description: 'Отказаться от помощи' },
+    //   { command: '/agree', description: 'Я сегодня буду поливать' },
+    //   { command: '/disagree', description: 'Я сегодня не смогу' },
+    // ]);
     try {
       meta = JSON.parse(fs.readFileSync('./meta.json', 'utf-8'));
     } catch (e) {}
