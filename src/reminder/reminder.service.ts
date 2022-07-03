@@ -136,7 +136,7 @@ export class ReminderService {
       this.bot.sendMessage(
         meta.chatId,
         `${getUsername(user)} поможет поливать. Всего участников: ${
-          Object.keys(meta.users).length
+          Object.keys(meta.users).length + 1
         }`,
       );
     }
