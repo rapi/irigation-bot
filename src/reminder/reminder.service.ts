@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import {
-  differenceInCalendarDays,
-  differenceInHours,
-  getHours,
-} from 'date-fns';
+import { differenceInHours, getHours } from 'date-fns';
 import * as fs from 'fs';
 
 const TelegramBot = require('node-telegram-bot-api');
@@ -73,7 +69,7 @@ export class ReminderService {
   saveData() {
     fs.writeFileSync('./meta.json', JSON.stringify(meta));
   }
-  @Cron('* */10 * * * *')
+  @Cron('0 * * * * *')
   reminderWatering() {
     this.reminder();
   }
@@ -90,7 +86,7 @@ export class ReminderService {
       differenceInHours(new Date(), new Date(meta.wateringToday.date)) > 12
     ) {
       const user = getRandomUser();
-      console.log('Ask ' + getUsername(meta.users[user].user));
+      console.log('Ask ' + getUsername(meta.users[user].user), Date.now());
       if (user)
         this.bot.sendMessage(
           meta.users[user].user.chat.id,
