@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { differenceInCalendarDays, getHours } from 'date-fns';
+import {
+  differenceInCalendarDays,
+  differenceInHours,
+  getHours,
+} from 'date-fns';
 import * as fs from 'fs';
 
 const TelegramBot = require('node-telegram-bot-api');
@@ -69,19 +73,24 @@ export class ReminderService {
   saveData() {
     fs.writeFileSync('./meta.json', JSON.stringify(meta));
   }
-  @Cron('0 0 * * * *')
+  @Cron('0 */10 * * * *')
   reminderWatering() {
     this.reminder();
   }
   reminder() {
+    console.log(
+      new Date().toString() + ' Reminder ',
+      getHours(new Date()),
+      differenceInHours(new Date(), new Date(meta.wateringToday.date)),
+    );
     if (
       getHours(new Date()) > 10 &&
       getHours(new Date()) < 19 &&
       meta.chatId &&
-      differenceInCalendarDays(new Date(), new Date(meta.wateringToday.date)) >
-        1
+      differenceInHours(new Date(), new Date(meta.wateringToday.date)) > 12
     ) {
       const user = getRandomUser();
+      console.log('Ask ' + getUsername(meta.users[user].user));
       if (user)
         this.bot.sendMessage(
           meta.users[user].user.chat.id,
@@ -105,10 +114,7 @@ export class ReminderService {
     if (!meta.users[user.chat.id]) {
       this.addUser(user);
     }
-    if (
-      differenceInCalendarDays(new Date(), new Date(meta.wateringToday.date)) >
-      1
-    ) {
+    if (differenceInHours(new Date(), new Date(meta.wateringToday.date)) > 12) {
       this.bot.sendMessage(user.chat.id, `Спасибо большое, за заботу`);
       this.bot.sendMessage(
         meta.chatId,
