@@ -84,8 +84,8 @@ export class ReminderService {
       differenceInHours(new Date(), new Date(meta.wateringToday.date)),
     );
     if (
-      getHours(new Date()) > 10 &&
-      getHours(new Date()) < 19 &&
+      getHours(new Date()) > 8 &&
+      getHours(new Date()) < 17 &&
       meta.chatId &&
       differenceInHours(new Date(), new Date(meta.wateringToday.date)) > 12
     ) {
