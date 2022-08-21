@@ -15,7 +15,7 @@ let meta = {
 const getRandomUser = () =>
   Object.keys(meta.users)[
     Object.keys(meta.users).find((e) => e === meta.wateringToday.user) + 1
-  ] ?? meta.wateringToday[0];
+  ] ?? meta.wateringToday[0].user;
 
 const getUsername = (user) =>
   user.from.username
