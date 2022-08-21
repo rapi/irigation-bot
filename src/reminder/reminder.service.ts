@@ -8,7 +8,6 @@ let meta = {
   chatId: null,
   wateringToday: {
     user: null,
-    userIndex: null,
     date: 0,
   },
   users: {},
@@ -104,8 +103,8 @@ export class ReminderService {
         date: 0,
       };
       this.bot.sendMessage(
-          meta.chatId,
-          `${getUsername(user)} \n Отказался поливуать туи`,
+        meta.chatId,
+        `${getUsername(user)} \n Отказался поливуать туи`,
       );
       this.bot.sendMessage(user.chat.id, `Мы попросим кого-нибудь еще`);
     }
@@ -125,7 +124,7 @@ export class ReminderService {
       );
       meta.wateringToday = {
         date: Date.now(),
-        user: user.chat.id,
+        user: user.from.username,
       };
     } else {
       this.bot.sendMessage(
