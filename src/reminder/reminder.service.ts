@@ -99,7 +99,7 @@ export class ReminderService {
   disagree(user) {
     if (user.from.username === meta.wateringToday.user) {
       meta.wateringToday = {
-        ...meta.wateringToday,
+        user: user.from.username,
         date: 0,
       };
       this.bot.sendMessage(
