@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { differenceInHours, getHours } from 'date-fns';
 import * as fs from 'fs';
+
 const TelegramBot = require('node-telegram-bot-api');
 let meta = {
   chatId: null,
@@ -11,13 +12,11 @@ let meta = {
   },
   users: {},
 };
-const getRandomUser = () => {
-  return (
-    Object.keys(meta.users)[
-      Object.keys(meta.users).find((e) => e === meta.wateringToday.user) + 1
-    ] ?? Object.keys(meta.users)[0]
-  );
-};
+const getRandomUser = () =>
+  Object.keys(meta.users)[
+    Math.floor(Math.random() * Object.keys(meta.users).length)
+  ];
+
 const getUsername = (user) =>
   user.from.username
     ? '@' + user.from.username
@@ -87,9 +86,7 @@ export class ReminderService {
       differenceInHours(new Date(), new Date(meta.wateringToday.date)) > 12
     ) {
       const user = getRandomUser();
-      console.log(user);
       console.log('Ask ' + getUsername(meta.users[user].user), Date.now());
-      meta.wateringToday.user = meta.users[user].user.chat.id;
       if (user)
         this.bot.sendMessage(
           meta.users[user].user.chat.id,
@@ -102,7 +99,7 @@ export class ReminderService {
   disagree(user) {
     if (user.from.username === meta.wateringToday.user) {
       meta.wateringToday = {
-        user: user.from.username,
+        user: null,
         date: 0,
       };
       this.bot.sendMessage(
