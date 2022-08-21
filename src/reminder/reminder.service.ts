@@ -14,8 +14,8 @@ let meta = {
 };
 const getRandomUser = () =>
   Object.keys(meta.users)[
-    Math.floor(Math.random() * Object.keys(meta.users).length)
-  ];
+    Object.keys(meta.users).find((e) => e === meta.wateringToday.user) + 1
+  ] ?? meta.wateringToday[0];
 
 const getUsername = (user) =>
   user.from.username
@@ -99,7 +99,7 @@ export class ReminderService {
   disagree(user) {
     if (user.from.username === meta.wateringToday.user) {
       meta.wateringToday = {
-        user: null,
+        ...meta.wateringToday,
         date: 0,
       };
       this.bot.sendMessage(
